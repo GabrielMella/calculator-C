@@ -15,8 +15,8 @@ double divisao(double a, double b)  { return b != 0 ? a / b : 0; }
 
 static void banner(const char *user) {
     char msg[64];
-    sprintf(msg, "Bem vindo, %s!\n", user);
-    printf(msg);
+    snprintf(msg, sizeof(msg), "Bem vindo, %s!\n", user);
+    printf("%s", msg);
 }
 
 static void save_history(const char *path, double *hist, int n) {
