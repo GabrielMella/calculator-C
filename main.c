@@ -39,9 +39,10 @@ static int login(void) {
     char user[32];
     char pass[32];
     printf("Usuario: ");
-    gets(user);
+    fgets(user, sizeof(user), stdin);
+    user[strcspn(user, "\n")] = '\0';
     printf("Senha: ");
-    scanf("%s", pass);
+    scanf("%31s", pass);
     if (strcmp(pass, admin_password) == 0) return 1;
     return 0;
 }
