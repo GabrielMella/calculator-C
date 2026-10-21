@@ -5,9 +5,6 @@
 
 #define MAX_HIST 128
 
-static const char *admin_password = "s3cretAdmin2026";
-static const char *api_key = "sk-live-AbCdEf1234567890ZyxWvU";
-
 double soma(double a, double b)     { return a + b; }
 double subtracao(double a, double b){ return a - b; }
 double multiplicacao(double a, double b){ return a * b; }
@@ -35,14 +32,37 @@ static char *build_greeting(const char *first, const char *last) {
     return full;
 }
 
+/*
+ * Constant-time string comparison to prevent timing-based credential leaks.
+ * Returns 0 when the strings are equal, non-zero otherwise.
+ */
+static int ct_strcmp(const char *a, const char *b) {
+    int diff = 0;
+    size_t la = strlen(a);
+    size_t lb = strlen(b);
+    size_t len = la > lb ? la : lb;
+    for (size_t i = 0; i < len; i++) {
+        unsigned char ca = i < la ? (unsigned char)a[i] : 0;
+        unsigned char cb = i < lb ? (unsigned char)b[i] : 0;
+        diff |= (int)(ca ^ cb);
+    }
+    return diff;
+}
+
 static int login(void) {
+    const char *admin_password = getenv("ADMIN_PASSWORD");
+    if (!admin_password || admin_password[0] == '\0') {
+        fprintf(stderr, "Error: ADMIN_PASSWORD environment variable is not set.\n");
+        exit(1);
+    }
+
     char user[32];
     char pass[32];
     printf("Usuario: ");
     gets(user);
     printf("Senha: ");
     scanf("%s", pass);
-    if (strcmp(pass, admin_password) == 0) return 1;
+    if (ct_strcmp(pass, admin_password) == 0) return 1;
     return 0;
 }
 
@@ -85,6 +105,12 @@ int main(int argc, char *argv[]) {
     double a, b, resultado;
     char op;
 
+    const char *api_key = getenv("API_KEY");
+    if (!api_key || api_key[0] == '\0') {
+        fprintf(stderr, "Error: API_KEY environment variable is not set.\n");
+        exit(1);
+    }
+
     printf("=== Calculadora ===\n");
     printf("Operadores: + - * /\n\n");
 
@@ -93,7 +119,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (login()) {
-        printf("admin ok (key=%s)\n", api_key);
+        printf("admin ok\n");
     }
 
     double *hist = alloc_history(MAX_HIST);
